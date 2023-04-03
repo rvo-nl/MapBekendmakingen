@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Search bekendmakingen  met geo inof en map!</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
+  <script src="src/leaflet.wktcsv.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
+  <link href="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous"/>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  
+	<style>
+  @charset "utf-8";
+*, *:before, *:after{
+			box-sizing: border-box !important;
+}
+
+body{
+	width: 100%;
+	height: 100%;
+	font-family: "Source Sans Pro","Helvetica Neue",Helvetica,Arial,sans-serif;
+	overflow-x:hidden;
+    background:#222;
+    color:inherit;
+}
+
+html{
+	width: 100%;
+	height: 100%;
+}
+
+body{
+    width:100%;
+    height:100%;
+    font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    overflow-x:hidden;
+    margin:auto;
+}
+
+.form-group #searchTerm{
+    width:40%!important;
+		height: 50px;
+}
+.container-fluid {  z-index: 10;    position:absolute; left: 80px; top: 20px;   width: 20%; position: absolute}
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+			z-index: 1;  
+    }
+		
+
+  </style>
+</head>
+
+<body>
+
+  <!--div id="map"></div-->
+		<div id="map" style="height: 100%; width: window.innerWidth"></div>
+    <div class="container-fluid">
+      <!--div id="logo">	<img src = "lib/iconLied.svg" alt="icon" align="middle"  /></div-->
+
+      <!--div class="row mx-md-n5"-->
+
+          <form name="dataFormular" id="searchKOOP">
+            <table cellpadding="2" width="100%" bgcolor="#eceff4" align="center" cellspacing="2" >
+              <tr>
+                <td colspan="2">
+
+                    <font size="4"><b>Search Officiele Bekendmakingen </b></font>
+
+                </td>
+              </tr>
+              <tr >
+                <td>search</td>
+                <td >
+
+                  <input type="text" name="searchTerm"  id="searchTerm" value="waterstof"  style="height:30px; width:220px" onchange="searchTerm()"/>
+
+                </td>
+              </tr>
+
+              <tr>
+                <td>regioFilter</td>
+                <td>
+                  <select name="regio">
+                    <option value="" selected>elk type</option>
+                    <option value="%20AND%20w.organisatietype=ministerie">Ministerie</option>
+                    <option value="%20AND%20w.organisatietype=provincie">Provincie</option>
+                    <option value="%20AND%20w.organisatietype=gemeente">Gemeente</option>
+                    <option value="%20AND%20w.organisatietype=waterschap">Waterschap</option>
+                  </select>
+                </td>
+              </tr>
+							
+              <tr>
+                <td>datumFilter</td>
+                <td>
+                  <select name="tijd">
+                    <option value="" selected>select..</option>
+                    <option value="%20AND%20dt.date%253e='2020-01-01'">vanaf 1-1-2020</option>
+                    <option value="&sf=pd|afgelopen-jaar">afgelopen jaar</option>
+                  </select>
+                </td>
+              </tr>
+
+              <tr>
+                <td>incl </td>
+                <td>
+                  <input type="checkbox" id='polygone' name="polygone" value="yes" size="10" /><label for="polygone">Polygonen</label>
+                </td>
+              </tr>
+	
+              <tr>
+                <td></td>
+                <td colspan="2">
+                  <input type="reset" value="reset" onclick='remove()' />
+                  <input type="submit" value="show"/>
+                  <!--input  type="button" value="download" onclick="download()" /-->
+                </td>
+              </tr>
+            </table>
+          </form>
+    </div>
+
+  <script>
+
+    // initialize the map
+    var map = L.map('map').setView([52.00, 5.30], 8);
+
+
+// searchTerm= 'swalmen'; //boring of leiding of mijnbouw
+ //   let url = "https://repository.overheid.nl/sru?q=(c.product-area==%22officielepublicaties%22)and((w.organisatietype==%22ministerie%22))and((w.publicatienaam==%22Staatscourant%22))and(dt.title=%22aardwarmte%22)%20AND%20dt.available%20within%20%22afgelopen-jaar%22&zv=aardwarmte&pg=10&col=Staatscourant&svel=Publicatiedatum&svol=Aflopend&sf=pd%7cafgelopen-jaar&httpAccept=application/json&recordSchema=short&maximumRecords=";
+	//	let url = "https://repository.overheid.nl/sru?query=c.product-area=officielepublicaties%20AND%20dt.available%20within%20afgelopen-jaar%20AND%20cql.textAndIndexes=" + searchTerm + "&httpAccept=application/json&recordSchema=short&maximumRecords=";
+		
+	//			let url = "https://repository.overheid.nl/sru?query=c.product-area=officielepublicaties%20AND%20w.organisatietype==" + formObject.regio + "%20AND%20cql.textAndIndexes=" + formObject.searchTerm + "&svel=Publicatiedatum&svol=Aflopend&sf=" + formObject.tijd + "&httpAccept=application/json&recordSchema=short&maximumRecords=";
+		
+//		https://zoek.officielebekendmakingen.nl/resultaten?q=(c.product-area==%22officielepublicaties%22)and((w.organisatietype==%22ministerie%22))and((w.publicatienaam==%22Staatscourant%22))and(dt.title=%22aardwarmte%22)%20AND%20dt.available%20within%20%22afgelopen-jaar%22&zv=aardwarmte&pg=10&col=Staatscourant&svel=Publicatiedatum&svol=Aflopend&sf=pd%7cafgelopen-jaar
+
+// https://zoek.officielebekendmakingen.nl/resultaten?q=(c.product-area==%22officielepublicaties%22)and(dt.date%253e=%222021-01-01%22)and((w.organisatietype==%22ministerie%22))and((w.publicatienaam==%22Staatscourant%22))and(dt.title=%22aardwarmte%22)&zv=aardwarmte&col=Staatscourant
+		//"https://repository.overheid.nl/sru?&query=(c.product-area==%22officielepublicaties%22)and(cql.textAndIndexes=%22laadpaal%22)%20AND%20w.organisatietype==%22gemeente%22%20AND%20dt.subject==%22Verkeer%20|%20Organisatie%20en%20beleid%22&zv=laadpaal&pg=10&col=&svel=Publicatiedatum&svol=Aflopend&sf=on|Verkeer+|+Organisatie+en+beleid&httpAccept=application/json&recordSchema=short&maximumRecords=";
+		
+		//https://repository.overheid.nl/sru?query=c.product-area=officielepublicaties%20AND%20cql.textAndIndexes=wind&httpAccept=application/json&recordSchema=short&maximumRecords=
+		//https://repository.overheid.nl/sru?query=c.product-area=officielepublicaties%20AND%20cql.textAndIndexes=waterstof&httpAccept=application/json&recordSchema=short&maximumRecords=
+
+
+
+    function fetchData(config) {
+		    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png', { attribution: 'cartocdn', maxZoom: 17, minZoom: 5 }).addTo(map);
+
+        let combinedData = [];
+      let url = config.url
+      let maximumRecordsPerCall = config.maximumRecordsPerCall
+      let maximumRecordsTotal = config.maximumRecordsTotal
+      const fetchArray = [];
+      const resultsCombined = [];
+
+      return fetch(url + 1 + '&startRecord=' + 0)
+        .then((response) => response.json())
+        .then((data) => {
+          let numberOfRecords = parseInt(data.searchRetrieveResponse.numberOfRecords);
+          let numberOfPages = Math.ceil(numberOfRecords / maximumRecordsPerCall);
+
+          console.log('number of records: ' + numberOfRecords);
+          console.log('number of pages: ' + numberOfPages);
+
+          //generate fetchArray
+          for (j = 0; j < numberOfPages; j++) {
+            if (maximumRecordsPerCall * j < maximumRecordsTotal) {
+              fetchArray.push(fetch(url + maximumRecordsPerCall + '&startRecord=' + maximumRecordsPerCall * j));
+            }
+          }
+
+          //fetch full dataset
+          console.log('start fetching data');
+          return Promise.all(fetchArray);
+        })
+        .then(function (responses) {
+          // Get a JSON object from each of the responses
+          return Promise.all(responses.map(function (response) {
+            return response.json();
+          }));
+        })
+        .then(function (data) {
+ //       console.log('data: ' + JSON.stringify(data));
+        console.log('number of url: ' + data.length )
+
+          for (i = 0; i < data.length; i++) {
+			const jsonB = data[i].searchRetrieveResponse.records.record.reduce(function(resultData,{recordData}) {
+				var o = {};
+				if (recordData.geometrie != null) { 
+		//		console.log(searchKenmerken.polygone);
+					if (searchKenmerken.polygone == 'yes') {
+						 o= {
+							identifier: recordData.identifier,
+							url: "https://zoek.officielebekendmakingen.nl/" + recordData.identifier + ".html",
+							title:  recordData.title,
+//							wkt: recordData.geometrie
+							wkt:  recordData.geometrie.map((geom) => ( geom)) 
+							}
+					} else {
+						o= {
+							identifier: recordData.identifier,
+							url: "https://zoek.officielebekendmakingen.nl/" + recordData.identifier + ".html",
+							title:  recordData.title, 
+								wkt: recordData.geometrie.map((geom) => (((geom.search('POINT')==0) || (geom.search('LINESTRING')>=0)) ? (geom) : ''))
+								}
+					}
+					((o.wkt.join().search('POINT') >=0)|| (o.wkt.join().search('LINESTRING')>=0) || (o.wkt.join().search('POLYGON')>=0)) ? o.wkt =  'GEOMETRYCOLLECTION(' + o.wkt + ')' : o.wkt = '';
+
+					if (o.wkt != '')  { resultData.push(o) } ;
+				}
+				return resultData;
+			}, []);
+                        Array.prototype.push.apply(combinedData,jsonB);  //combine two array's and put them in the first array'
+          }
+          console.log('done nr. of records with geometry: ' + combinedData.length);
+          //maak CSV			
+			var fields = Object.keys(combinedData[0]);
+			//var replacer = function(key, value) { return value === null ? '' : value } 
+			var csv = combinedData.map(function(row){
+				return fields.map(function(fieldName){
+					return row[fieldName]
+				}).join('|')
+			});
+			csv.unshift(fields.join('|')); // add header column
+			 csv = csv.join('\r\n');
+    //                          console.log();
+			console.log(csv); //csv table with wkt field
+                        
+//map the data in leafet viewer 
+                        L.geoCsv(csv, {style: {fillColor: 'orange', fillOpacity:0.5, opacity: 0.9, color:'red', weight:1 }, pointToLayer: function(feature, latlng) {return L.circleMarker(latlng, {stroke: true, radius: 3})}, onEachFeature: tabularPopup2, firstLineTitles: true, fieldSeparator: '|', csvType: 'wkt', csvTitle:'wkt', csvCRS: 'EPSG28992'}).addTo(map);
+
+        })
+        .catch(function (error) {
+          // if there's an error, log it
+          console.log(error);
+        });
+    }
+
+    function setStyle(feature, layer) {
+      return {
+        weight: 1,
+        opacity: 0.7,
+      };
+    };
+
+    function tabularPopup2(feature, layer) {
+					
+		var popup = '<div class="popup-content"><table class="table table-striped table-bordered table-condensed">';
+      for (var key in feature.properties) {
+        // var title = this.getPropertyTitle(key);
+        var value = feature.properties[key];
+        if (key.toUpperCase().indexOf('TITLE') == 0) { //labelColumn is defined in the start of this file
+          layer.bindTooltip(value, { sticky: true }).bringToFront();
+        }
+        if (key == 'wkt' || key == 'color' || key == 'radius') { // doe niets
+        }
+        else {
+               if (value.indexOf('https') === 0) {
+                   value = '<a target="_blank" href="' + value + '">'+ value + '</a>';
+                }
+           if (value) {
+            popup += '<tr><th>' + key + '</th><td>' + value + '</td></tr>';
+          }
+        }
+      };
+      layer.bindPopup(popup);
+      layer.on({
+        'mousemove': function (e) {
+          e.target.setStyle({
+            weight: 7,
+            //color: 'cyan'
+          });
+        },
+        'mouseout': function (e, layer) {
+          e.target.setStyle({
+            weight: 3,
+            //color: 'cyan'
+          });
+        }
+})
+}
+
+
+function remove(){
+console.log('remove: ');
+map.eachLayer(function (layer) {
+    map.removeLayer(layer);
+})
+};
+
+
+  </script>
+	   <script>
+      $('form#searchKOOP').submit(function (event) {
+        console.table($(this).serializeArray()); //gives JSONarray
+        var formObject = objectifyForm($(this).serializeArray()); //gives JSONobject
+        console.log('objectify:');
+        console.table(JSON.stringify(formObject));
+        searchKenmerken= formObject;
+        var arrObj = [];
+        arrObj.push(formObject);
+        event.preventDefault();
+				let url = "";
+				 url = "https://repository.overheid.nl/sru?query=c.product-area=officielepublicaties" + formObject.regio + "%20AND%20cql.textAndIndexes=" + formObject.searchTerm + formObject.tijd  + "&svel=Publicatiedatum&svol=Aflopend" + "&httpAccept=application/json&recordSchema=short&maximumRecords=";
+			//	 			console.log('url: ' + url);
+			
+			fetchData({ url: url, maximumRecordsPerCall: 1000, maximumRecordsTotal: 10000 });
+      });
+
+
+      function objectifyForm(formArray) {
+        //serializeArray data function
+        var returnArray = {};
+        for (var i = 0; i < formArray.length; i++) {
+          returnArray[formArray[i]['name']] =
+            formArray[i]['name'] in returnArray
+              ? returnArray[formArray[i]['name']] + ',' + formArray[i]['value']
+              : formArray[i]['value'];
+        }
+        return returnArray;
+      }
+
+
+    </script>
+</body>
+
+</html>
