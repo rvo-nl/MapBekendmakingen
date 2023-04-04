@@ -153,6 +153,7 @@ L.GeoCSV = L.GeoJSON.extend({
     return geojson
 
     function wktgeom2geojsontxt (geom_list) {
+	geom_list = geom_list.replace(/^[,\s]+|[,\s]+$/g, '');
   //    console.log('geom_list: ' + geom_list);
       var geom_pos
       // POLYGON((0.0524887245 46.34721813,0.0524887245 48.938372,3.128101325 48.938372,3.128101325 46.34721813,0.0524887245 46.34721813))
