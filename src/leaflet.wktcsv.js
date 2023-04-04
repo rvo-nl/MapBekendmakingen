@@ -160,7 +160,7 @@ L.GeoCSV = L.GeoJSON.extend({
       if (geom_list.search('MULTILINESTRING') == 0) {
         geojson = {'type': 'MultiLineString', 'coordinates': []}
         str = geom_list.substring(geom_list.indexOf('((') + 2, geom_list.indexOf('))'))
-        geom_lastindex = geom_list.indexOf('))')-1;
+        geom_lastindex = geom_list.indexOf('))')+1;
         // console.log('f-multilinestring: ')
         linestring_list = str.split('),(')
         //   console.log('linelist0: ' + linestring_list[0])
