@@ -2,6 +2,7 @@
 
 zie  https://rvo-nl.github.io/Mapbekendmakingen
 
-Middels zoektermen zoekt deze in alle officiele bekendmakingen van de nederlandse overheid en zet ze op de kaart.
+Zoek middels zoektermen in alle officiele bekendmakingen van de nederlandse overheid (vanaf 2020) en zet ze op de kaart.
 
-![Image](exampleMapBekendmakingen.jpeg)
+<img src="exampleMapBekendmakingen.jpg" alt="drawing" width="500"/>
+
