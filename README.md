@@ -1,6 +1,6 @@
 # MapBekendmakingen
 
-zie  https://rvo-nl.github.io/Mapbekendmakingen
+zie  https://rvo-nl.github.io/MapBekendmakingen
 
 Zoek middels zoektermen in alle officiele bekendmakingen van de nederlandse overheid (vanaf 2020) en zet ze op de kaart.
 
